@@ -72,6 +72,11 @@ public class SimpleAndroidOCRActivity extends Activity {
 			try {
 				Log.v(TAG, "******************** hhhhhhhhhhhhhhh *********************");
 				AssetManager assetManager = getAssets();
+				
+				/*code to read multiple files*/
+				String[] names = new String[]{"eng.traineddata", "eng.cube.bigrams", "eng.cube.fold", "eng.cube.lm", "eng.cube.nn", 
+								"eng.cube.params", "eng.cube.size", "eng.cube.word-freq", "eng.tesseract_cube.nn", "eng.traineddata1"};
+				
 				InputStream in = assetManager.open("tessdata/" + lang + ".traineddata");
 				//GZIPInputStream gin = new GZIPInputStream(in);
 				OutputStream out = new FileOutputStream(DATA_PATH
@@ -80,10 +85,26 @@ public class SimpleAndroidOCRActivity extends Activity {
 				// Transfer bytes from in to out
 				byte[] buf = new byte[1024];
 				int len;
-				//while ((lenf = gin.read(buff)) > 0) {
-				while ((len = in.read(buf)) > 0) {
-					out.write(buf, 0, len);
-				}
+			
+				/*changes*/
+				for (String name : names) {
+						File file = new File(name);
+						FileInputStream stream = null;  
+					      try {
+						          stream = new FileInputStream(file);   
+						          while( (len = stream.read(buf)) != -1) {
+						              out.write(buf, 0, len); 
+						          }
+						      }
+					      finally {
+					    	  	  stream.close();  
+						      } 
+					      
+						//while ((lenf = gin.read(buff)) > 0) {
+						/*while ((len = in.read(buf)) > 0) {
+							out.write(buf, 0, len);
+						}*/
+				} //end of for
 				in.close();
 				//gin.close();
 				out.close();
@@ -155,7 +176,11 @@ public class SimpleAndroidOCRActivity extends Activity {
 		_taken = true;
 
 		BitmapFactory.Options options = new BitmapFactory.Options();
-		options.inSampleSize = 4;
+		
+		/* Ketan: changes here
+		options.inSampleSize = 4;*/
+		options.inSampleSize = 0;
+		//options.inPreferQualityOverSpeed = true;
 
 		Bitmap bitmap = BitmapFactory.decodeFile(_path, options);
 
