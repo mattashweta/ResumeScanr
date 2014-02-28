@@ -6,6 +6,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 
 import android.annotation.SuppressLint;
@@ -27,6 +32,10 @@ import android.widget.EditText;
 
 import com.SCYahooligens.android.resumescanr.R;
 import com.googlecode.tesseract.android.TessBaseAPI;
+
+import edu.stanford.nlp.ie.AbstractSequenceClassifier;
+import edu.stanford.nlp.ie.crf.CRFClassifier;
+import edu.stanford.nlp.ling.CoreLabel;
 
 public class ResumeScanrActivity extends Activity {
 	public static final String PACKAGE_NAME = "com.SCYahooligens.android.resumescanr";
@@ -260,13 +269,41 @@ public class ResumeScanrActivity extends Activity {
 		}*/
 		
 		recognizedText = recognizedText.trim();
+		
+		String getPersons = ner(recognizedText);
 
 		if ( recognizedText.length() != 0 ) {
-			_field.setText(_field.getText().toString().length() == 0 ? recognizedText : _field.getText() + " " + recognizedText);
+			_field.setText(_field.getText().toString().length() == 0 ? recognizedText + "\nPersons : " + getPersons : _field.getText() + " " + recognizedText);
 			_field.setSelection(_field.getText().toString().length());
 		}
 		
 		// Cycle done.
+	}
+	
+	protected String ner(String s)
+	{
+		String serializedClassifier = "classifiers/english.all.3class.distsim.crf.ser.gz";
+
+
+        AbstractSequenceClassifier<CoreLabel> classifier = CRFClassifier
+                .getClassifierNoExceptions(serializedClassifier);
+
+       s = s.replaceAll("\\s+", " ");
+       String  t=classifier.classifyWithInlineXML(s);
+       return Arrays.toString(getTagValues(t).toArray());
+	}
+	
+	private static final Pattern TAG_REGEX = Pattern.compile("<PERSON>(.+?)</PERSON>");
+	
+	private static Set<String> getTagValues(final String str) {
+	    final Set<String> tagValues = new HashSet<String>();
+	    //final Set<String> tagValues = new TreeSet();
+	    final Matcher matcher = TAG_REGEX.matcher(str);
+	    while (matcher.find()) {
+	        tagValues.add(matcher.group(1));
+	    }
+
+	    return tagValues;
 	}
 	
 	// www.Gaut.am was here
