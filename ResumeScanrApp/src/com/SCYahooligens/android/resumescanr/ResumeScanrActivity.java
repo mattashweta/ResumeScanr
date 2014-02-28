@@ -22,20 +22,23 @@ import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.media.ExifInterface;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.PopupWindow;
 
 import com.SCYahooligens.android.resumescanr.R;
 import com.googlecode.tesseract.android.TessBaseAPI;
 
-import edu.stanford.nlp.ie.AbstractSequenceClassifier;
+/*import edu.stanford.nlp.ie.AbstractSequenceClassifier;
 import edu.stanford.nlp.ie.crf.CRFClassifier;
-import edu.stanford.nlp.ling.CoreLabel;
+import edu.stanford.nlp.ling.CoreLabel;*/
 
 public class ResumeScanrActivity extends Activity {
 	public static final String PACKAGE_NAME = "com.SCYahooligens.android.resumescanr";
@@ -164,7 +167,7 @@ public class ResumeScanrActivity extends Activity {
 		Log.i(TAG, "resultCode: " + resultCode);
 
 		if (resultCode == -1) {
-			onPhotoTaken();
+			new ParseResume().execute();
 		} else {
 			Log.v(TAG, "User cancelled");
 		}
@@ -179,133 +182,120 @@ public class ResumeScanrActivity extends Activity {
 	protected void onRestoreInstanceState(Bundle savedInstanceState) {
 		Log.i(TAG, "onRestoreInstanceState()");
 		if (savedInstanceState.getBoolean(ResumeScanrActivity.PHOTO_TAKEN)) {
-			onPhotoTaken();
+			//onPhotoTaken();
 		}
 	}
 
-	@SuppressLint("NewApi")
-	protected void onPhotoTaken() {
-		_taken = true;
-
-		BitmapFactory.Options options = new BitmapFactory.Options();
-		
-		options.inSampleSize = 0;
-		options.inPreferQualityOverSpeed=true;
-
-		Bitmap bitmap = BitmapFactory.decodeFile(_path, options);
-
-		try {
-			ExifInterface exif = new ExifInterface(_path);
-			int exifOrientation = exif.getAttributeInt(
-					ExifInterface.TAG_ORIENTATION,
-					ExifInterface.ORIENTATION_NORMAL);
-
-			Log.v(TAG, "Orient: " + exifOrientation);
-
-			int rotate = 0;
-
-			switch (exifOrientation) {
-			case ExifInterface.ORIENTATION_ROTATE_90:
-				rotate = 90;
-				break;
-			case ExifInterface.ORIENTATION_ROTATE_180:
-				rotate = 180;
-				break;
-			case ExifInterface.ORIENTATION_ROTATE_270:
-				rotate = 270;
-				break;
-			}
-
-			Log.v(TAG, "Rotation: " + rotate);
-
-			if (rotate != 0) {
-
-				// Getting width & height of the given image.
-				int w = bitmap.getWidth();
-				int h = bitmap.getHeight();
-
-				// Setting pre rotate
-				Matrix mtx = new Matrix();
-				mtx.preRotate(rotate);
-
-				// Rotating Bitmap
-				bitmap = Bitmap.createBitmap(bitmap, 0, 0, w, h, mtx, false);
-			}
-
-			// Convert to ARGB_8888, required by tess
-			bitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true);
-
-		} catch (IOException e) {
-			Log.e(TAG, "Couldn't correct orientation: " + e.toString());
-		}
-
-		// _image.setImageBitmap( bitmap );
-		
-		Log.v(TAG, "Before baseApi"+DATA_PATH);
-
-		TessBaseAPI baseApi = new TessBaseAPI();
-		Log.v(TAG, "failing here!");
-		baseApi.setDebug(true);
-		
-		Log.v(TAG, "Before baseApi datapath");
-		baseApi.init(DATA_PATH, null);
-		Log.v(TAG, "after baseApi datapath");
-		
-		baseApi.setImage(bitmap);
-		Log.v(TAG, "After baseApi");
-		
-		String recognizedText = baseApi.getUTF8Text();
-		
-		baseApi.end();
-
-		// You now have the text in recognizedText var, you can do anything with it.
-		// We will display a stripped out trimmed alpha-numeric version of it (if lang is eng)
-		// so that garbage doesn't make it to the display.
-
-		Log.v(TAG, "OCRED TEXT: " + recognizedText);
-
-		/*if ( lang.equalsIgnoreCase("eng") ) {
-			recognizedText = recognizedText.replaceAll("[^a-zA-Z0-9]+", " ");
-		}*/
-		
-		recognizedText = recognizedText.trim();
-		
-		String getPersons = ner(recognizedText);
-
-		if ( recognizedText.length() != 0 ) {
-			_field.setText(_field.getText().toString().length() == 0 ? recognizedText + "\nPersons : " + getPersons : _field.getText() + " " + recognizedText);
-			_field.setSelection(_field.getText().toString().length());
-		}
-		
-		// Cycle done.
-	}
 	
-	protected String ner(String s)
-	{
-		String serializedClassifier = "classifiers/english.all.3class.distsim.crf.ser.gz";
-
-
-        AbstractSequenceClassifier<CoreLabel> classifier = CRFClassifier
-                .getClassifierNoExceptions(serializedClassifier);
-
-       s = s.replaceAll("\\s+", " ");
-       String  t=classifier.classifyWithInlineXML(s);
-       return Arrays.toString(getTagValues(t).toArray());
-	}
 	
-	private static final Pattern TAG_REGEX = Pattern.compile("<PERSON>(.+?)</PERSON>");
-	
-	private static Set<String> getTagValues(final String str) {
-	    final Set<String> tagValues = new HashSet<String>();
-	    //final Set<String> tagValues = new TreeSet();
-	    final Matcher matcher = TAG_REGEX.matcher(str);
-	    while (matcher.find()) {
-	        tagValues.add(matcher.group(1));
-	    }
+	public class ParseResume extends AsyncTask<String, Void, String>{
 
-	    return tagValues;
-	}
+        @Override
+
+        protected void onPreExecute(){
+        	Log.i(TAG, "in Async task PreExecute method ");
+        }
+
+        protected String doInBackground(String... params) {
+        	Log.i(TAG, "in Async task doInBackground method ");
+        	String done = "done";
+        	onPhotoTaken();
+        	return done;
+        }
+        protected void onPostExecute(String Result){
+        	Log.i(TAG, "In Async task PostExecutemethod");
+        	System.out.println(Result);
+        }
+        
+    	
+    	@SuppressLint("NewApi")
+    	protected void onPhotoTaken() {
+    		_taken = true;
+
+    		BitmapFactory.Options options = new BitmapFactory.Options();
+    		
+    		options.inSampleSize = 0;
+    		options.inPreferQualityOverSpeed=true;
+
+    		Bitmap bitmap = BitmapFactory.decodeFile(_path, options);
+
+    		try {
+    			ExifInterface exif = new ExifInterface(_path);
+    			int exifOrientation = exif.getAttributeInt(
+    					ExifInterface.TAG_ORIENTATION,
+    					ExifInterface.ORIENTATION_NORMAL);
+
+    			Log.v(TAG, "Orient: " + exifOrientation);
+
+    			int rotate = 0;
+
+    			switch (exifOrientation) {
+    			case ExifInterface.ORIENTATION_ROTATE_90:
+    				rotate = 90;
+    				break;
+    			case ExifInterface.ORIENTATION_ROTATE_180:
+    				rotate = 180;
+    				break;
+    			case ExifInterface.ORIENTATION_ROTATE_270:
+    				rotate = 270;
+    				break;
+    			}
+
+    			Log.v(TAG, "Rotation: " + rotate);
+
+    			if (rotate != 0) {
+
+    				// Getting width & height of the given image.
+    				int w = bitmap.getWidth();
+    				int h = bitmap.getHeight();
+
+    				// Setting pre rotate
+    				Matrix mtx = new Matrix();
+    				mtx.preRotate(rotate);
+
+    				// Rotating Bitmap
+    				bitmap = Bitmap.createBitmap(bitmap, 0, 0, w, h, mtx, false);
+    			}
+
+    			// Convert to ARGB_8888, required by tess
+    			bitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true);
+
+    		} catch (IOException e) {
+    			Log.e(TAG, "Couldn't correct orientation: " + e.toString());
+    		}
+
+    		// _image.setImageBitmap( bitmap );
+    		
+    		Log.v(TAG, "Before baseApi"+DATA_PATH);
+
+    		TessBaseAPI baseApi = new TessBaseAPI();
+    		Log.v(TAG, "failing here!");
+    		baseApi.setDebug(true);
+    		
+    		Log.v(TAG, "Before baseApi datapath");
+    		baseApi.init(DATA_PATH, null);
+    		Log.v(TAG, "after baseApi datapath");
+    		
+    		baseApi.setImage(bitmap);
+    		Log.v(TAG, "After baseApi");
+    		
+    		String recognizedText = baseApi.getUTF8Text();
+    		
+    		baseApi.end();
+
+    		// You now have the text in recognizedText var, you can do anything with it.
+    		// We will display a stripped out trimmed alpha-numeric version of it (if lang is eng)
+    		// so that garbage doesn't make it to the display.
+
+    		Log.v(TAG, "OCRED TEXT: " + recognizedText);
+
+    		/*if ( lang.equalsIgnoreCase("eng") ) {
+    			recognizedText = recognizedText.replaceAll("[^a-zA-Z0-9]+", " ");
+    		}*/
+    		
+    		recognizedText = recognizedText.trim();
+    		
+    	}
+    }
 	
-	// www.Gaut.am was here
-	// Thanks for reading!
 }
