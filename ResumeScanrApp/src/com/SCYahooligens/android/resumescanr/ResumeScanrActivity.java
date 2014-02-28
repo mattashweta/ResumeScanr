@@ -33,8 +33,12 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.PopupWindow;
 
+import com.SCYYahooligens.android.extractor.InfoExtractor;
+import com.SCYYahooligens.android.extractor.Resume;
 import com.SCYahooligens.android.resumescanr.R;
 import com.googlecode.tesseract.android.TessBaseAPI;
+import com.hackday.resumescanr.database.ResumeReaderDBHelper;
+import com.hackday.resumescanr.database.ResumeReaderDatabaseAPI;
 
 /*import edu.stanford.nlp.ie.AbstractSequenceClassifier;
 import edu.stanford.nlp.ie.crf.CRFClassifier;
@@ -294,7 +298,18 @@ public class ResumeScanrActivity extends Activity {
     		}*/
     		
     		recognizedText = recognizedText.trim();
+    		InfoExtractor infoExtractorInstance = new InfoExtractor();
+    		Resume studResume = infoExtractorInstance.getInfo(recognizedText);
     		
+    		//Do the call to Info Extractor that will give back an instance of Resume 
+    		//which is to be loaded into the database
+    		ResumeReaderDBHelper dbHelper = new ResumeReaderDBHelper(getBaseContext());
+    		
+    		int id=0;
+    		//Do insert .. id to be generated automatically // Do manual for now.
+    		ResumeReaderDatabaseAPI.insertData(dbHelper, id, studResume.studName, 
+    				studResume.studEmail, studResume.studGPA, studResume.studBranch, 
+    				studResume.studUniv);		
     	}
     }
 	

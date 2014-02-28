@@ -8,7 +8,7 @@ import android.database.sqlite.SQLiteDatabase;
 
 public class ResumeReaderDatabaseAPI {
 	//Inserts data into the database and returns the new Row id
-	public static long insertData(ResumeReaderDBHelper mDbHelper, String id, 
+	public static long insertData(ResumeReaderDBHelper mDbHelper, int id, 
 			String name, String email, String gpa, String branch,
 			String univ)
 	{
