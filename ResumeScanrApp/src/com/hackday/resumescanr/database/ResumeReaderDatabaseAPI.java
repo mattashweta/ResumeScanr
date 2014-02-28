@@ -34,7 +34,7 @@ public class ResumeReaderDatabaseAPI {
 		return newRowId;
 	}
 	
-	public static Cursor ReadData(ResumeReaderDBHelper mDbHelper, String[] projection,
+	public static Cursor readData(ResumeReaderDBHelper mDbHelper, String[] projection,
 			String selection, String selectionArgs[],String sortColumn)
 	{
 		SQLiteDatabase db = mDbHelper.getReadableDatabase();
@@ -50,5 +50,29 @@ public class ResumeReaderDatabaseAPI {
 		    );
 		
 		return c;
+	}
+	
+	//Update database 
+	//Returns number of rows affected.
+	public static int update(ResumeReaderDBHelper mDbHelper, String columnName,
+			String newValue, int rowId)
+	{
+		SQLiteDatabase db = mDbHelper.getReadableDatabase();
+
+		// New value for one column
+		ContentValues values = new ContentValues();
+		values.put(columnName, newValue);
+
+		// Which row to update, based on the ID
+		String selection = ResumeEntry.COLUMN_NAME_ENTRY_ID + " LIKE ?";
+		String[] selectionArgs = { String.valueOf(rowId) };
+
+		int count = db.update(
+		    ResumeEntry.TABLE_NAME,
+		    values,
+		    selection,
+		    selectionArgs);
+		
+		return count;
 	}
 }
