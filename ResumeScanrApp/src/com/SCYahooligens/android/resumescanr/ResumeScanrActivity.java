@@ -1,17 +1,10 @@
 package com.SCYahooligens.android.resumescanr;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.zip.GZIPInputStream;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -27,15 +20,12 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.PopupWindow;
 
 import com.SCYYahooligens.android.extractor.InfoExtractor;
 import com.SCYYahooligens.android.extractor.Resume;
-import com.SCYahooligens.android.resumescanr.R;
 import com.googlecode.tesseract.android.TessBaseAPI;
 import com.hackday.resumescanr.database.ResumeReaderDBHelper;
 import com.hackday.resumescanr.database.ResumeReaderDatabaseAPI;
@@ -142,7 +132,7 @@ public class ResumeScanrActivity extends Activity {
 		_button = (Button) findViewById(R.id.button);
 		_button.setOnClickListener(new ButtonClickHandler());
 
-		_path = DATA_PATH + "/ocr.jpg";
+		_path = DATA_PATH + "/ocr.tiff";
 	}
 
 	public class ButtonClickHandler implements View.OnClickListener {
@@ -216,7 +206,7 @@ public class ResumeScanrActivity extends Activity {
     	protected void onPhotoTaken() {
     		_taken = true;
 
-    		BitmapFactory.Options options = new BitmapFactory.Options();
+    		/*BitmapFactory.Options options = new BitmapFactory.Options();
     		
     		options.inSampleSize = 0;
     		options.inPreferQualityOverSpeed=true;
@@ -266,7 +256,7 @@ public class ResumeScanrActivity extends Activity {
 
     		} catch (IOException e) {
     			Log.e(TAG, "Couldn't correct orientation: " + e.toString());
-    		}
+    		}*/
 
     		// _image.setImageBitmap( bitmap );
     		
@@ -280,11 +270,12 @@ public class ResumeScanrActivity extends Activity {
     		baseApi.init(DATA_PATH, null);
     		Log.v(TAG, "after baseApi datapath");
     		
-    		baseApi.setImage(bitmap);
+    		//baseApi.setImage(bitmap);
+    		File imageFile = new File(_path);
+    		baseApi.setImage(imageFile);
     		Log.v(TAG, "After baseApi");
     		
     		String recognizedText = baseApi.getUTF8Text();
-    		
     		baseApi.end();
 
     		// You now have the text in recognizedText var, you can do anything with it.
@@ -297,7 +288,7 @@ public class ResumeScanrActivity extends Activity {
     			recognizedText = recognizedText.replaceAll("[^a-zA-Z0-9]+", " ");
     		}*/
     		
-    		recognizedText = recognizedText.trim();
+    		/*recognizedText = recognizedText.trim();
     		InfoExtractor infoExtractorInstance = new InfoExtractor();
     		Resume studResume = infoExtractorInstance.getInfo(recognizedText);
     		
@@ -309,7 +300,7 @@ public class ResumeScanrActivity extends Activity {
     		//Do insert .. id to be generated automatically // Do manual for now.
     		ResumeReaderDatabaseAPI.insertData(dbHelper, id, studResume.studName, 
     				studResume.studEmail, studResume.studGPA, studResume.studBranch, 
-    				studResume.studUniv);		
+    				studResume.studUniv);*/		
     	}
     }
 	
